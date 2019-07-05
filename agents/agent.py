@@ -16,8 +16,8 @@ class RLA():
         self.action_high = task.action_high
         
         #actor model
-        self.actor_local = Actor(self.state_size, self.action_size, self.acton_low, self.action_high)
-        self.actor_target = Actor(self.state_size, self.action_size, self.acton_low, self.action_high)
+        self.actor_local = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
+        self.actor_target = Actor(self.state_size, self.action_size, self.action_low, self.action_high)
         
         #Critic model
         self.critic_local = Critic(self.state_size, self.action_size)
@@ -43,7 +43,7 @@ class RLA():
         self.gamma, self.tau = 0.95, 0.001
         
         #Initialize scores
-        self.score, self.best_score = -np.inf, -np_inf
+        self.score, self.best_score = -np.inf, -np.inf
     
     def reset_episode(self):
         self.noise.reset()
@@ -69,7 +69,7 @@ class RLA():
         if done:
             #Preserve best score
             if self.score > self.best_score:
-                self.best_score = self_score
+                self.best_score = self.score
         
     def act(self, state):
         state = np.reshape(state, [-1, self.state_size])
@@ -81,11 +81,11 @@ class RLA():
         states = np.vstack([exp.state for exp in experiences if exp is not None])
         actions = np.array([exp.action for exp in experiences if exp is not None]).astype(np.float32).reshape(-1, self.action_size)
         rewards = np.array([exp.reward for exp in experiences if exp is not None]).astype(np.float32).reshape(-1, 1)
-        dones = np.array([exp.done for exp in experiences if exp is not None]).astype(np.unit8).reshape(-1, 1)
+        dones = np.array([exp.done for exp in experiences if exp is not None]).astype(np.uint8).reshape(-1, 1)
         next_states = np.vstack([exp.next_state for exp in experiences if exp is not None])
         
         #predict next_state actions and Q values from target model...
-        acions_next = self.actor_target.model.precit_on_batch(next_states)
+        actions_next = self.actor_target.model.predict_on_batch(next_states)
         Q_targets_next = self.critic_target.model.predict_on_batch([next_states, actions_next])
         
         Q_targets = rewards + self.gamma * Q_targets_next * (1 - dones)
@@ -97,7 +97,7 @@ class RLA():
         
         #Update target models
         self.update(self.critic_local.model, self.critic_target.model)
-        self.update(self_actor_local.model, self.actor_target.model)
+        self.update(self.actor_local.model, self.actor_target.model)
         
     def update(self, local_model, target_model):
         """Update model parameters"""

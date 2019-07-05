@@ -1,4 +1,4 @@
-from keras import layers, models, optimizers, intializers, regularizers
+from keras import layers, models, optimizers, initializers, regularizers
 from keras import backend as kb
 
 class Critic:
@@ -24,14 +24,14 @@ class Critic:
         
         #Combine states and actions
         network = layers.Add()([h_states, h_actions])
-        network = layers.activation('relu')(network)
+        network = layers.Activation('relu')(network)
         
         #Add batch normlization layer
         network = layers.normalization.BatchNormalization()(network)
         
         #Add output layer to produce action values
-        Q_values = layer.Dense(units=1, name='q_values',
-                               kernel_initializer=initializers.random_uniform(minval=-0.001, maxvalue=0.001))(network)
+        Q_values = layers.Dense(units=1, name='q_values',
+                               kernel_initializer=initializers.random_uniform(minval=-0.0005, maxval=0.0005))(network)
         
         #Create Model
         self.model = models.Model(inputs=[states, actions], outputs=Q_values)
@@ -42,6 +42,6 @@ class Critic:
         #compute action gradients
         action_gradients = kb.gradients(Q_values, actions)
         
-        self.get_action_gradients = kb.function(inputs=[*self.model.input kb.learning_phase()],
+        self.get_action_gradients = kb.function(inputs=[*self.model.input, kb.learning_phase()],
                                                 outputs=action_gradients)
         
